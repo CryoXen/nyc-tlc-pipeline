@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  dashboard:
+    build: .
+    container_name: nyc-tlc-dashboard
+    ports:
+      - "8501:8501"
+    volumes:
+      # Monta la carpeta de resultados de Spark directo al contenedor
+      - ./data/output:/app/data/output:ro
+      - ./data/processed:/app/data/processed:ro
+      # Monta el .env para credenciales AWS
+      - ./.env:/app/.env:ro
+    environment:
+      - AWS_DEFAULT_REGION=${AWS_REGION:-us-east-1}
+    restart: unless-stopped
