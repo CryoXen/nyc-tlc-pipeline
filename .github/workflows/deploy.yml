@@ -15,7 +15,9 @@ jobs:
 
     steps:
       - name: Fix permissions before checkout
-        run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE || true
+        run: |
+          sudo chown -R $USER:$USER $GITHUB_WORKSPACE || true
+          sudo chown -R $USER:$USER /home/ubuntu/nyc-tlc-pipeline/actions-runner/_work/ || true
 
       - name: Checkout repository
         uses: actions/checkout@v4
