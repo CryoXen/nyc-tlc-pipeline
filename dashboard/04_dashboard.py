@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 st.set_page_config(page_title="NYC TLC Analytics", page_icon="🚕", layout="wide")
-BUCKET = os.getenv("S3_BUCKET")
+BUCKET = os.getenv("BUCKET")
 s3     = boto3.client("s3")
 
 @st.cache_data
