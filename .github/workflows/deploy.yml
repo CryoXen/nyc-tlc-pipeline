@@ -32,7 +32,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region:            ${{ secrets.AWS_REGION }}
 
-      - name: Stop existing container
+      - name: Kill anything on port 8501
+        run: |
+          docker stop nyc-tlc-dashboard 2>/dev/null || true
+          docker rm nyc-tlc-dashboard 2>/dev/null || true
+          fuser -k 8501/tcp 2>/dev/null || true
+          sleep 2
+
+      - name: Stop existing compose
         working-directory: dashboard
         run: docker compose down --remove-orphans || true
 
@@ -54,7 +61,7 @@ jobs:
             echo "Attempt $i/15..."
             sleep 5
           done
-          docker compose -f dashboard/docker-compose.yml logs
+          docker logs nyc-tlc-dashboard
           exit 1
 
       - name: Deployment summary
