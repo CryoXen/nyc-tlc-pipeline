@@ -8,7 +8,10 @@ services:
     volumes:
       - ../data/output:/app/data/output:ro
       - ../data/processed:/app/data/processed:ro
-      - ./.env:/app/.env:ro
     environment:
-      - AWS_DEFAULT_REGION=${AWS_REGION:-us-east-1}
+      - BUCKET=xideralaws-curso-christian-1
+      - AWS_REGION=us-west-1
+      - AWS_DEFAULT_REGION=us-west-1
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
     restart: unless-stopped
