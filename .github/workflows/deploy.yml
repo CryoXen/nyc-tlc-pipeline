@@ -1,0 +1,62 @@
+name: Deploy NYC TLC Dashboard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "dashboard/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build & Deploy Dashboard
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          cat > dashboard/.env << ENVEOF
+          BUCKET=${{ secrets.BUCKET }}
+          LAMBDA_ROLE_ARN=${{ secrets.LAMBDA_ROLE_ARN }}
+          AWS_REGION=${{ secrets.AWS_REGION }}
+          ENVEOF
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ secrets.AWS_REGION }}
+
+      - name: Stop existing container
+        working-directory: dashboard
+        run: docker compose down --remove-orphans || true
+
+      - name: Build Docker image
+        working-directory: dashboard
+        run: docker compose build --no-cache
+
+      - name: Start container
+        working-directory: dashboard
+        run: docker compose up -d
+
+      - name: Wait for app to be ready
+        run: |
+          for i in {1..15}; do
+            if curl -sf http://localhost:8501/_stcore/health\; then
+              echo "✓ Dashboard is up"
+              exit 0
+            fi
+            echo "Attempt $i/15..."
+            sleep 5
+          done
+          docker compose -f dashboard/docker-compose.yml logs
+          exit 1
+
+      - name: Deployment summary
+        run: |
+          echo "✓ Dashboard deployed: http://$(curl -s ifconfig.me):8501"

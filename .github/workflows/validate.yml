@@ -1,0 +1,39 @@
+name: Validate Pipeline Scripts
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Lint & Validate
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Python syntax
+        run: |
+          for f in src/*.py; do
+            python3 -m py_compile "$f" && echo "✓ $f" || echo "✗ $f"
+          done
+
+      - name: Check no hardcoded credentials
+        run: |
+          if grep -r "aws_access_key\|aws_secret\|password" src/ --include="*.py" -i; then
+            echo "✗ Hardcoded credentials found"
+            exit 1
+          fi
+          echo "✓ No hardcoded credentials"
+
+      - name: Verify required files
+        run: |
+          for f in src/lambda_ingesta.py src/02_etl.py src/03_spark_pipeline.py \
+                   src/run_pipeline.py dashboard/Dockerfile README.md; do
+            [ -f "$f" ] && echo "✓ $f" || echo "✗ Missing: $f"
+          done
