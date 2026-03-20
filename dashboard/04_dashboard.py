@@ -275,7 +275,7 @@ with tab3:
 
     df_log = load_ingesta_log()
     if not df_log.empty:
-        df_log["ingested_at"] = pd.to_datetime(df_log["ingested_at"])
+        df_log["ingested_at"] = pd.to_datetime(df_log["ingested_at"], format="ISO8601")
         df_log = df_log.sort_values("ingested_at", ascending=False)
 
         l1, l2, l3, l4 = st.columns(4)
